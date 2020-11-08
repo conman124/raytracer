@@ -5,7 +5,19 @@ use ray::Ray;
 
 use indicatif::{ProgressBar};
 
+fn hit_sphere(center: &Point3, radius: f64, ray: &Ray) -> bool {
+	let oc: Vector3 = (ray.origin - center.clone()).into();
+	let a = ray.direction.dot(&ray.direction);
+	let b = 2.0 * oc.dot(&ray.direction);
+	let c = oc.dot(&oc) - radius*radius;
+	let discriminant = b*b - 4.0 * a * c;
+	discriminant > 0.0
+}
+
 fn ray_color(ray: &Ray) -> Color3 {
+	if hit_sphere(&Point3(0.0,0.0,-1.0), 0.5, ray) {
+		return Color3(1.0, 0.0, 0.0);
+	}
 	let unit_dir = ray.direction.to_unit();
 	let t = 0.5 * (unit_dir.y() + 1.0);
 	(1.0 - t) * Color3(1.0, 1.0, 1.0) + t*Color3(0.5, 0.7, 1.0)
