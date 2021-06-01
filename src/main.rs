@@ -1,22 +1,30 @@
 mod vectors;
 mod ray;
+mod objects;
+
 use vectors::{Color3,Point3,Vector3};
 use ray::Ray;
 
 use indicatif::{ProgressBar};
 
-fn hit_sphere(center: &Point3, radius: f64, ray: &Ray) -> bool {
+fn hit_sphere(center: &Point3, radius: f64, ray: &Ray) -> f64 {
 	let oc: Vector3 = (ray.origin - center.clone()).into();
-	let a = ray.direction.dot(&ray.direction);
-	let b = 2.0 * oc.dot(&ray.direction);
-	let c = oc.dot(&oc) - radius*radius;
-	let discriminant = b*b - 4.0 * a * c;
-	discriminant > 0.0
+	let a = ray.direction.length_squared();
+	let half_b = oc.dot(&ray.direction);
+	let c = oc.length_squared() - radius*radius;
+	let discriminant = half_b*half_b - a * c;
+	if discriminant < 0.0 {
+		-1.0
+	} else {
+		(-half_b - discriminant.sqrt()) / a
+	}
 }
 
 fn ray_color(ray: &Ray) -> Color3 {
-	if hit_sphere(&Point3(0.0,0.0,-1.0), 0.5, ray) {
-		return Color3(1.0, 0.0, 0.0);
+	let t = hit_sphere(&Point3(0.0,0.0,-1.0), 0.5, ray);
+	if t > 0.0 {
+		let n = (Vector3::from(ray.at(t)) - Vector3(0.0, 0.0, -1.0)).to_unit();
+		return 0.5 * Color3(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
 	}
 	let unit_dir = ray.direction.to_unit();
 	let t = 0.5 * (unit_dir.y() + 1.0);
